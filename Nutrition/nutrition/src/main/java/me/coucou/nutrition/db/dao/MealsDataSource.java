@@ -53,6 +53,18 @@ public class MealsDataSource {
         return newModel;
     }
 
+    public Meal editMeal(String comment, String date, long id) {
+        ContentValues values = new ContentValues();
+        values.put(MealsSQLiteHelper.COLUMN_MEAL, comment);
+        values.put(MealsSQLiteHelper.COLUMN_DATE, date);
+        database.update(MealsSQLiteHelper.TABLE_MEALS,values, MealsSQLiteHelper.COLUMN_ID +" = "+id, null);
+        Cursor cursor = database.rawQuery("SELECT * FROM "+MealsSQLiteHelper.TABLE_MEALS+" WHERE "+ MealsSQLiteHelper.COLUMN_ID+" = "+id, null);
+        cursor.moveToFirst();
+        Meal editedModel = cursorToComment(cursor);
+        cursor.close();
+        return editedModel;
+    }
+
     public void deleteMeal(Meal comment) {
         long id = comment.getId();
         System.out.println("Meal deleted with id: " + id);

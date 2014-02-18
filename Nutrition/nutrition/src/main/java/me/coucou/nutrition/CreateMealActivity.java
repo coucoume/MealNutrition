@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.sql.SQLException;
 import java.util.Calendar;
@@ -79,12 +80,35 @@ public class CreateMealActivity extends ActionBarActivity {
                 dataSource.open();
                 EditText description = (EditText) getActivity().findViewById(R.id.mealDescriptionEditText);
                 Button dateBtn = (Button) getActivity().findViewById(R.id.pickTimeBtn);
-                Meal meal = dataSource.createMeal(description.getText().toString(), dateBtn.getText().toString());
-                meal.toString();
-
+                Meal model = dataSource.createMeal(description.getText().toString(), dateBtn.getText().toString());
+                Toast.makeText(getActivity(), model.toString(), Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(getActivity(), MainActivity.class));
+                getActivity().finish();
 
             } catch (SQLException e) {
+                //TODO: Handle exceptions
+                e.printStackTrace();
+            }
+        }
+
+        public void editMeal(View v, long id) {
+
+            try {
+                dataSource = new MealsDataSource(getActivity());
+                dataSource.open();
+                EditText description = (EditText) getActivity().findViewById(R.id.mealDescriptionEditText);
+                Button dateBtn = (Button) getActivity().findViewById(R.id.pickTimeBtn);
+                Meal model = dataSource.editMeal(description.getText().toString(), dateBtn.getText().toString(), id);
+                Toast.makeText(getActivity(), model.toString(), Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getActivity(), MainActivity.class));
+
+                //Remove the meal
+                ((NutritionApplication)getActivity().getApplication()).currentMeal = null;
+
+                getActivity().finish();
+
+            } catch (SQLException e) {
+                //TODO: Handle exceptions
                 e.printStackTrace();
             }
         }
@@ -101,20 +125,36 @@ public class CreateMealActivity extends ActionBarActivity {
                 }
             });
 
-            final Button save = (Button) rootView.findViewById(R.id.saveMeal);
-            save.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    saveMeal(v);
-                }
-            });
+            final Button saveEdit = (Button) rootView.findViewById(R.id.saveMeal);
 
-            final Calendar c = Calendar.getInstance();
+            NutritionApplication app = (NutritionApplication) getActivity().getApplication();
+            final Meal model = app.currentMeal;
+
+            Calendar c = Calendar.getInstance();
             int year = c.get(Calendar.YEAR);
             int month = c.get(Calendar.MONTH) + 1;
             int day = c.get(Calendar.DAY_OF_MONTH);
 
-            btn.setText(day + "-" + month + "-" + year);
+            //Means that is editing
+            if(model != null){
+                btn.setText(model.getDate());
+                EditText txtEdit = (EditText) rootView.findViewById(R.id.mealDescriptionEditText);
+                txtEdit.setText(model.getDescription());
+                saveEdit.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        editMeal(v, model.getId());
+                    }
+                });
+            } else {
+                saveEdit.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        saveMeal(v);
+                    }
+                });
+                btn.setText(day + "-" + month + "-" + year);
+            }
 
             return rootView;
         }

@@ -9,13 +9,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
 import java.sql.SQLException;
 import java.util.List;
 
+import me.coucou.nutrition.adapter.MealListAdapter;
 import me.coucou.nutrition.db.dao.MealsDataSource;
 import me.coucou.nutrition.db.model.Meal;
 
@@ -81,7 +82,8 @@ public class MainActivity extends ActionBarActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            ListView list = (ListView) rootView.findViewById(R.id.mealList);
+            final ListView list = (ListView) rootView.findViewById(R.id.mealList);
+
             ImageButton addBtn = (ImageButton) rootView.findViewById(R.id.addMeal);
             addBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -92,11 +94,22 @@ public class MainActivity extends ActionBarActivity {
             });
 
             List<Meal> values = dataSource.getAllComments();
-            // use the SimpleCursorAdapter to show the
-            // elements in a ListView
-            ArrayAdapter<Meal> adapter = new ArrayAdapter<Meal>(getActivity(),
-                    android.R.layout.simple_list_item_1, values);
+            MealListAdapter adapter = new MealListAdapter(getActivity(), values);
             list.setAdapter(adapter);
+
+            list.setClickable(true);
+            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Meal model = (Meal) list.getAdapter().getItem(position);
+
+                    Intent createMealIntent = new Intent(getActivity(), CreateMealActivity.class);
+                    NutritionApplication app = (NutritionApplication) getActivity().getApplication();
+                    app.currentMeal = model;
+                    startActivity(createMealIntent);
+                }
+            });
+
 
             return rootView;
         }
