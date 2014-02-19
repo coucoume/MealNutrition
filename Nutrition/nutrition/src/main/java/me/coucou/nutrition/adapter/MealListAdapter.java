@@ -41,14 +41,14 @@ public class MealListAdapter extends ArrayAdapter<Meal> {
             LayoutInflater inflater = context.getLayoutInflater();
             rowView = inflater.inflate(R.layout.meal_viewlist_row, null);
             ViewHolder viewHolder = new ViewHolder();
-            viewHolder.date = (TextView) rowView.findViewById(R.id.txtDate);
+            viewHolder.date = (TextView) rowView.findViewById(R.id.txtMealDateTime);
             viewHolder.description = (TextView) rowView.findViewById(R.id.txtMeal);
             rowView.setTag(viewHolder);
         }
 
         ViewHolder holder = (ViewHolder) rowView.getTag();
         Meal meal = list.get(position);
-        holder.date.setText(meal.getDate());
+        holder.date.setText(meal.getFullDateTime());
         holder.description.setText(meal.getDescription());
         holder.id = meal.getId();
 

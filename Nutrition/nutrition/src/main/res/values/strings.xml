@@ -4,10 +4,12 @@
     <string name="app_name">Nutrition</string>
     <string name="hello_world">Hello world!</string>
     <string name="add_meal_title">Add what you eat</string>
-    <string name="pick_time">Pick time</string>
+    <string name="pick_time_date">Pick Date</string>
+    <string name="pick_time_hour">Pick Hour</string>
 
     <string name="add_meal_accept">Ok done</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_create_meal">CreateMealActivity</string>
+    <string name="meal_image_alt">Meal image</string>
 
 </resources>

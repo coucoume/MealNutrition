@@ -7,6 +7,7 @@ public class Meal {
     private long id;
     private String description;
     private String date;
+    private String time;
 
     public long getId() {
         return id;
@@ -28,13 +29,25 @@ public class Meal {
         return date;
     }
 
-    public void setDate(String description) {
-        this.date = description;
+    public String getTime() {
+        return time;
+    }
+
+    public void setDate(String value) {
+        this.date = value;
+    }
+
+    public void setTime(String value) {
+        this.time = value;
+    }
+
+    public String getFullDateTime(){
+        return date +" "+time;
     }
 
     // Will be used by the ArrayAdapter in the ListView
     @Override
     public String toString() {
-        return date +"\n" +description;
+        return date+" - "+ time +"\n" +description;
     }
 }

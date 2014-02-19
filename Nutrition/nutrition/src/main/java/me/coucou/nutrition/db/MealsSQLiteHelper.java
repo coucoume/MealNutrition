@@ -14,16 +14,19 @@ public class MealsSQLiteHelper extends SQLiteOpenHelper {
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_MEAL= "meal";
     public static final String COLUMN_DATE= "date";
+    public static final String COLUMN_TIME= "time";
+
 
 
     private static final String DATABASE_NAME = "meals-nutrition.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Database creation sql statement
     private static final String DATABASE_CREATE = "create table "
             + TABLE_MEALS + "(" + COLUMN_ID
             + " integer primary key autoincrement, " + COLUMN_MEAL
             + " text not null, "+ COLUMN_DATE
+            + " text not null, "+ COLUMN_TIME
             + " text not null);";
 
     public MealsSQLiteHelper(Context context) {

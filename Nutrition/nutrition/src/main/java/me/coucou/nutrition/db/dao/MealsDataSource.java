@@ -36,10 +36,11 @@ public class MealsDataSource {
         dbHelper.close();
     }
 
-    public Meal createMeal(String comment, String date) {
+    public Meal createMeal(String comment, String date, String time) {
         ContentValues values = new ContentValues();
         values.put(MealsSQLiteHelper.COLUMN_MEAL, comment);
         values.put(MealsSQLiteHelper.COLUMN_DATE, date);
+        values.put(MealsSQLiteHelper.COLUMN_TIME, time);
 
         long insertId = database.insert(MealsSQLiteHelper.TABLE_MEALS, null,
                 values);
@@ -53,15 +54,18 @@ public class MealsDataSource {
         return newModel;
     }
 
-    public Meal editMeal(String comment, String date, long id) {
+    public Meal editMeal(String comment, String date, String time,  long id) {
         ContentValues values = new ContentValues();
         values.put(MealsSQLiteHelper.COLUMN_MEAL, comment);
         values.put(MealsSQLiteHelper.COLUMN_DATE, date);
-        database.update(MealsSQLiteHelper.TABLE_MEALS,values, MealsSQLiteHelper.COLUMN_ID +" = "+id, null);
+        values.put(MealsSQLiteHelper.COLUMN_TIME, time);
+        database.update(MealsSQLiteHelper.TABLE_MEALS, values, MealsSQLiteHelper.COLUMN_ID +" = "+id, null);
+
         Cursor cursor = database.rawQuery("SELECT * FROM "+MealsSQLiteHelper.TABLE_MEALS+" WHERE "+ MealsSQLiteHelper.COLUMN_ID+" = "+id, null);
         cursor.moveToFirst();
         Meal editedModel = cursorToComment(cursor);
         cursor.close();
+
         return editedModel;
     }
 
@@ -99,6 +103,7 @@ public class MealsDataSource {
         model.setId(cursor.getLong(0));
         model.setDescription(cursor.getString(1));
         model.setDate(cursor.getString(2));
+        model.setTime(cursor.getString(3));
         return model;
     }
 }
