@@ -1,14 +1,22 @@
 package me.coucou.nutrition;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,16 +25,26 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import me.coucou.nutrition.db.dao.MealsDataSource;
 import me.coucou.nutrition.db.model.Meal;
+import me.coucou.nutrition.factory.AlbumStorageDirFactory;
+import me.coucou.nutrition.factory.BaseAlbumDirFactory;
+import me.coucou.nutrition.factory.FroyoAlbumDirFactory;
 
 public class CreateMealActivity extends ActionBarActivity {
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +56,7 @@ public class CreateMealActivity extends ActionBarActivity {
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
         }
+
     }
 
 
@@ -67,6 +86,17 @@ public class CreateMealActivity extends ActionBarActivity {
     public static class PlaceholderFragment extends Fragment {
 
         private MealsDataSource dataSource;
+        private String mCurrentPhotoPath;
+
+        public static int BMP_WIDTH = 300;
+        public static int BMP_HEIGHT = 300;
+
+        private AlbumStorageDirFactory mAlbumStorageDirFactory = null;
+
+
+        private static final String JPEG_FILE_PREFIX = "IMG_";
+        private static final String JPEG_FILE_SUFFIX = ".jpg";
+        private static final int ACTION_CAMERA = 1;
 
         public PlaceholderFragment() {
         }
@@ -134,6 +164,14 @@ public class CreateMealActivity extends ActionBarActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_create_meal, container, false);
+
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
+                mAlbumStorageDirFactory = new FroyoAlbumDirFactory();
+            } else {
+                mAlbumStorageDirFactory = new BaseAlbumDirFactory();
+            }
+
             final Button btnDate = (Button) rootView.findViewById(R.id.pickTimeDateBtn);
             btnDate.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -176,6 +214,7 @@ public class CreateMealActivity extends ActionBarActivity {
                         editMeal(v, model.getId());
                     }
                 });
+
             } else {
                 saveEdit.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -185,9 +224,106 @@ public class CreateMealActivity extends ActionBarActivity {
                 });
                 btnDate.setText(day + "-" + month + "-" + year);
                 btnTime.setText(hour + ":" + minute);
+
+                //New mode-> let you add an image
+                ImageView img = (ImageView) rootView.findViewById(R.id.mealImage);
+                img.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        captureImage();
+                    }
+                });
+
+            }
+            return rootView;
+        }
+
+        //takes a picture of the meal
+        private void captureImage(){
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            File f = null;
+
+            try {
+                f = createImageFile();
+                mCurrentPhotoPath = f.getAbsolutePath();
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+            } catch (IOException e) {
+                e.printStackTrace();
+                f = null;
+                mCurrentPhotoPath = null;
             }
 
-            return rootView;
+            startActivityForResult(takePictureIntent, ACTION_CAMERA);
+        }
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+            if (resultCode == Activity.RESULT_OK) {
+                Log.d(getActivity().toString(), "OK picture taken");
+
+            		/* Get the size of the image */
+                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                bmOptions.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+
+                int photoW = bmOptions.outWidth;
+                int photoH = bmOptions.outHeight;
+
+		    /* get the minimum scale */
+                int scaleFactor = Math.min(photoW / BMP_WIDTH, photoH / BMP_HEIGHT);
+
+		    /* Set bitmap options to scale the image decode target */
+                bmOptions.inJustDecodeBounds = false;
+                bmOptions.inSampleSize = scaleFactor;
+                bmOptions.inPurgeable = true;
+
+		    /* Re sample the JPEG file into a Bitmap */
+                Bitmap bmp = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+                ImageView img = (ImageView) getActivity().findViewById(R.id.mealImage);
+                img.setImageBitmap(bmp);
+
+                Log.d(this.toString(), "image meal:\n"+bmp.toString());
+
+            } else {
+                //TODO: Implement code for cancelled operation
+                Toast.makeText(getActivity(),"Operation cancelled", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        /**
+         * Create a Bitmap file
+         *
+         * @return File
+         * @throws IOException
+         */
+        private File createImageFile() throws IOException {
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String imageFileName = JPEG_FILE_PREFIX + timeStamp + "_";
+            File albumF = getAlbumDir();
+            File imageF = File.createTempFile(imageFileName, JPEG_FILE_SUFFIX, albumF);
+
+            return imageF;
+        }
+
+        private File getAlbumDir() {
+            File storageDir = null;
+
+            if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+                storageDir = mAlbumStorageDirFactory.getAlbumStorageDir(getString(R.string.album_name));
+                if (storageDir != null) {
+                    if (!storageDir.mkdirs()) {
+                        if (!storageDir.exists()) {
+                            Log.d("CameraSample", "failed to create directory");
+                            return null;
+                        }
+                    }
+                }
+
+            } else {
+                Log.v(getString(R.string.app_name), "External storage is not mounted READ/WRITE.");
+            }
+
+            return storageDir;
         }
 
         @Override

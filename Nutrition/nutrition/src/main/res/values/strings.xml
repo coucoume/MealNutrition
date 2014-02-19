@@ -2,6 +2,8 @@
 <resources>
 
     <string name="app_name">Nutrition</string>
+    <string name="album_name">nutrition</string>
+
     <string name="hello_world">Hello world!</string>
     <string name="add_meal_title">Add what you eat</string>
     <string name="pick_time_date">Pick Date</string>
