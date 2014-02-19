@@ -23,11 +23,11 @@ public class MealsSQLiteHelper extends SQLiteOpenHelper {
 
     // Database creation sql statement
     private static final String DATABASE_CREATE = "create table "
-            + TABLE_MEALS + "(" + COLUMN_ID
-            + " integer primary key autoincrement, " + COLUMN_MEAL
-            + " text not null, "+ COLUMN_DATE
-            + " text not null, "+ COLUMN_TIME
-            + " text not null);";
+            + TABLE_MEALS + "("
+            + COLUMN_ID   + " integer primary key autoincrement, "
+            + COLUMN_MEAL + " text not null, "
+            + COLUMN_DATE + " text not null, "
+            + COLUMN_TIME + " text not null);";
 
     public MealsSQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

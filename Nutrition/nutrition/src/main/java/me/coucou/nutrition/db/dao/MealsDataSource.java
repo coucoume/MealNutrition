@@ -20,9 +20,11 @@ public class MealsDataSource {
     // Database fields
     private SQLiteDatabase database;
     private MealsSQLiteHelper dbHelper;
-    private String[] allColumns = { MealsSQLiteHelper.COLUMN_ID,
+    private String[] allColumns = {
+            MealsSQLiteHelper.COLUMN_ID,
             MealsSQLiteHelper.COLUMN_MEAL,
-            MealsSQLiteHelper.COLUMN_DATE};
+            MealsSQLiteHelper.COLUMN_DATE,
+            MealsSQLiteHelper.COLUMN_TIME};
 
     public MealsDataSource(Context context) {
         dbHelper = new MealsSQLiteHelper(context);

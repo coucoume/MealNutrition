@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -83,6 +84,7 @@ public class MainActivity extends ActionBarActivity {
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             final ListView list = (ListView) rootView.findViewById(R.id.mealList);
+            TextView noMeal = (TextView) rootView.findViewById(R.id.txtNoMeal);
 
             ImageButton addBtn = (ImageButton) rootView.findViewById(R.id.addMeal);
             addBtn.setOnClickListener(new View.OnClickListener() {
@@ -94,6 +96,12 @@ public class MainActivity extends ActionBarActivity {
             });
 
             List<Meal> values = dataSource.getAllComments();
+
+            //SHOW the textfield that display create your first meal
+            if(values.isEmpty()){
+                noMeal.setVisibility(View.VISIBLE);
+            }
+
             MealListAdapter adapter = new MealListAdapter(getActivity(), values);
             list.setAdapter(adapter);
 

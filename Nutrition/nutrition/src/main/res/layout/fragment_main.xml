@@ -14,6 +14,18 @@
         android:layout_height="match_parent">
     </ListView>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtNoMeal"
+        android:text="@string/no_meal_in_list"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_vertical|center"
+        android:textStyle="bold"
+        android:textSize="@dimen/abc_action_bar_title_text_size"
+        android:visibility="gone"/>
+
     <ImageButton
         android:id="@+id/addMeal"
         android:layout_width="wrap_content"
