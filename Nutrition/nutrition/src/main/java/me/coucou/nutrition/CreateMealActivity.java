@@ -29,7 +29,10 @@ import android.widget.ImageView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -284,9 +287,33 @@ public class CreateMealActivity extends ActionBarActivity {
 
                 Log.d(this.toString(), "image meal:\n"+bmp.toString());
 
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                String imageFileName = "mealThumb"+ timeStamp + ".jpg";
+                File albumF = getAlbumDir();
+                try{
+                    String fullFileName = albumF.getAbsolutePath()+ File.separatorChar+imageFileName;
+                    Log.d(this.toString(), "full file name:"+fullFileName);
+
+                    FileOutputStream thumbFileOS = new FileOutputStream(fullFileName);
+                    BufferedOutputStream bos = new BufferedOutputStream(thumbFileOS);
+                    bmp.compress(Bitmap.CompressFormat.JPEG, 80, bos);
+
+                    bos.flush();
+                    bos.close();
+
+                } catch (FileNotFoundException e) {
+                    Log.w(this.toString(), "Error saving image file: " + e.getMessage());
+
+                } catch (IOException e) {
+                    Log.w(this.toString(), "Error saving image file: " + e.getMessage());
+
+                }
+
             } else {
                 //TODO: Implement code for cancelled operation
-                Toast.makeText(getActivity(),"Operation cancelled", Toast.LENGTH_SHORT).show();
+                File file = new File(mCurrentPhotoPath);
+                boolean deleted = file.delete();
+                Toast.makeText(getActivity(),"Operation cancelled:"+ deleted, Toast.LENGTH_SHORT).show();
             }
         }
 
