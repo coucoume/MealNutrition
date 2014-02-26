@@ -49,7 +49,7 @@ public class MealListAdapter extends ArrayAdapter<Meal> {
         ViewHolder holder = (ViewHolder) rowView.getTag();
         Meal meal = list.get(position);
         holder.date.setText(meal.getFullDateTime());
-        holder.description.setText(meal.getDescription());
+        holder.description.setText(meal.getDescription()+"\n"+ meal.getImagePath());
         holder.id = meal.getId();
 
         return rowView;

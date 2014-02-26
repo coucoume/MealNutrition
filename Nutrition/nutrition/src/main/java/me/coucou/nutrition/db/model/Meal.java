@@ -8,6 +8,7 @@ public class Meal {
     private String description;
     private String date;
     private String time;
+    private String imagePath;
 
     public long getId() {
         return id;
@@ -41,6 +42,14 @@ public class Meal {
         this.time = value;
     }
 
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String value) {
+        this.imagePath = value;
+    }
+
     public String getFullDateTime(){
         return date +" "+time;
     }
@@ -48,6 +57,6 @@ public class Meal {
     // Will be used by the ArrayAdapter in the ListView
     @Override
     public String toString() {
-        return date+" - "+ time +"\n" +description;
+        return date+" - "+ time +"\n" +description +"\n"+imagePath;
     }
 }

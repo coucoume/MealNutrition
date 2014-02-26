@@ -91,6 +91,8 @@ public class CreateMealActivity extends ActionBarActivity {
         private MealsDataSource dataSource;
         private String mCurrentPhotoPath;
 
+        private Bitmap bmp;
+
         public static int BMP_WIDTH = 300;
         public static int BMP_HEIGHT = 300;
 
@@ -122,11 +124,49 @@ public class CreateMealActivity extends ActionBarActivity {
                 EditText description = (EditText) getActivity().findViewById(R.id.mealDescriptionEditText);
                 Button dateBtn = (Button) getActivity().findViewById(R.id.pickTimeDateBtn);
                 Button timeBtn = (Button) getActivity().findViewById(R.id.pickTimeHourBtn);
-                Meal model = dataSource.createMeal(
-                        description.getText().toString(),
-                        dateBtn.getText().toString(),
-                        timeBtn.getText().toString());
-                Toast.makeText(getActivity(), model.toString(), Toast.LENGTH_SHORT).show();
+
+
+                /*saves image thumb to disk
+
+                 */
+
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                String imageFileName = "mealThumb"+ timeStamp + ".jpg";
+                File albumF = getAlbumDir();
+                try{
+                    String fullFileName = albumF.getAbsolutePath()+ File.separatorChar+imageFileName;
+                    Log.d(this.toString(), "full file name:"+fullFileName);
+
+                    FileOutputStream thumbFileOS = new FileOutputStream(fullFileName);
+                    BufferedOutputStream bos = new BufferedOutputStream(thumbFileOS);
+                    bmp.compress(Bitmap.CompressFormat.JPEG, 80, bos);
+
+                    bos.flush();
+                    bos.close();
+
+
+                    Meal model = dataSource.createMeal(
+                            description.getText().toString(),
+                            dateBtn.getText().toString(),
+                            timeBtn.getText().toString(),
+                            fullFileName);
+                    Toast.makeText(getActivity(), model.toString(), Toast.LENGTH_SHORT).show();
+
+                } catch (FileNotFoundException e) {
+                    Log.w(this.toString(), "Error saving image file: " + e.getMessage());
+
+                } catch (IOException e) {
+                    Log.w(this.toString(), "Error saving image file: " + e.getMessage());
+
+                }
+
+                bmp = null;
+
+                /* end saving image to disk
+
+                 */
+
+
                 startActivity(new Intent(getActivity(), MainActivity.class));
                 getActivity().finish();
 
@@ -281,33 +321,12 @@ public class CreateMealActivity extends ActionBarActivity {
                 bmOptions.inPurgeable = true;
 
 		    /* Re sample the JPEG file into a Bitmap */
-                Bitmap bmp = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+                bmp = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
                 ImageView img = (ImageView) getActivity().findViewById(R.id.mealImage);
                 img.setImageBitmap(bmp);
 
                 Log.d(this.toString(), "image meal:\n"+bmp.toString());
 
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                String imageFileName = "mealThumb"+ timeStamp + ".jpg";
-                File albumF = getAlbumDir();
-                try{
-                    String fullFileName = albumF.getAbsolutePath()+ File.separatorChar+imageFileName;
-                    Log.d(this.toString(), "full file name:"+fullFileName);
-
-                    FileOutputStream thumbFileOS = new FileOutputStream(fullFileName);
-                    BufferedOutputStream bos = new BufferedOutputStream(thumbFileOS);
-                    bmp.compress(Bitmap.CompressFormat.JPEG, 80, bos);
-
-                    bos.flush();
-                    bos.close();
-
-                } catch (FileNotFoundException e) {
-                    Log.w(this.toString(), "Error saving image file: " + e.getMessage());
-
-                } catch (IOException e) {
-                    Log.w(this.toString(), "Error saving image file: " + e.getMessage());
-
-                }
 
             } else {
                 //TODO: Implement code for cancelled operation

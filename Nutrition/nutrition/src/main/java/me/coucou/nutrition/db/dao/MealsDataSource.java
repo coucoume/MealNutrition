@@ -24,7 +24,8 @@ public class MealsDataSource {
             MealsSQLiteHelper.COLUMN_ID,
             MealsSQLiteHelper.COLUMN_MEAL,
             MealsSQLiteHelper.COLUMN_DATE,
-            MealsSQLiteHelper.COLUMN_TIME};
+            MealsSQLiteHelper.COLUMN_TIME,
+            MealsSQLiteHelper.COLUMN_IMAGE_PATH};
 
     public MealsDataSource(Context context) {
         dbHelper = new MealsSQLiteHelper(context);
@@ -38,11 +39,12 @@ public class MealsDataSource {
         dbHelper.close();
     }
 
-    public Meal createMeal(String comment, String date, String time) {
+    public Meal createMeal(String comment, String date, String time, String fullPathImage) {
         ContentValues values = new ContentValues();
         values.put(MealsSQLiteHelper.COLUMN_MEAL, comment);
         values.put(MealsSQLiteHelper.COLUMN_DATE, date);
         values.put(MealsSQLiteHelper.COLUMN_TIME, time);
+        values.put(MealsSQLiteHelper.COLUMN_IMAGE_PATH, fullPathImage);
 
         long insertId = database.insert(MealsSQLiteHelper.TABLE_MEALS, null,
                 values);
@@ -106,6 +108,7 @@ public class MealsDataSource {
         model.setDescription(cursor.getString(1));
         model.setDate(cursor.getString(2));
         model.setTime(cursor.getString(3));
+        model.setImagePath(cursor.getString(4));
         return model;
     }
 }
