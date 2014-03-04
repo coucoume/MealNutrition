@@ -251,6 +251,17 @@ public class CreateMealActivity extends ActionBarActivity {
                 btnTime.setText(model.getTime());
                 EditText txtEdit = (EditText) rootView.findViewById(R.id.mealDescriptionEditText);
                 txtEdit.setText(model.getDescription());
+
+                //TODO: REmove and move to a background thread
+                File imgFile = new  File(model.getImagePath());
+                if(imgFile.exists()){
+
+                    Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
+                    ImageView myImage = (ImageView) rootView.findViewById(R.id.mealImage);
+                    myImage.setImageBitmap(myBitmap);
+                }
+
                 saveEdit.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

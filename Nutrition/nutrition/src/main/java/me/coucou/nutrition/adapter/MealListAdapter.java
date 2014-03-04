@@ -1,12 +1,16 @@
 package me.coucou.nutrition.adapter;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.File;
 import java.util.List;
 
 import me.coucou.nutrition.R;
@@ -29,6 +33,7 @@ public class MealListAdapter extends ArrayAdapter<Meal> {
     static class ViewHolder {
         public TextView date;
         public TextView description;
+        public ImageView thumb;
         public long id;
     }
 
@@ -43,6 +48,7 @@ public class MealListAdapter extends ArrayAdapter<Meal> {
             ViewHolder viewHolder = new ViewHolder();
             viewHolder.date = (TextView) rowView.findViewById(R.id.txtMealDateTime);
             viewHolder.description = (TextView) rowView.findViewById(R.id.txtMeal);
+            viewHolder.thumb = (ImageView) rowView.findViewById(R.id.imgviewMeal);
             rowView.setTag(viewHolder);
         }
 
@@ -51,6 +57,16 @@ public class MealListAdapter extends ArrayAdapter<Meal> {
         holder.date.setText(meal.getFullDateTime());
         holder.description.setText(meal.getDescription()+"\n"+ meal.getImagePath());
         holder.id = meal.getId();
+
+        //TODO: REmove and move to a background thread
+        File imgFile = new  File(meal.getImagePath());
+        if(imgFile.exists()){
+
+            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
+            ImageView myImage = holder.thumb;
+            myImage.setImageBitmap(myBitmap);
+        }
 
         return rowView;
     }

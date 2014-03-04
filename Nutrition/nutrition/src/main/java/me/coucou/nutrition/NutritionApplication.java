@@ -10,4 +10,11 @@ import me.coucou.nutrition.db.model.Meal;
 public class NutritionApplication extends Application {
     //TODO: Remove this in order to support all meals and DB connection in the application scope
     public Meal currentMeal;
+
+    @Override
+    public void onCreate() {
+
+        super.onCreate();
+    }
+
 }
