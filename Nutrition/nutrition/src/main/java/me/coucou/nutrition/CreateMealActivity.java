@@ -15,6 +15,8 @@ import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -41,6 +43,7 @@ import java.util.Date;
 
 import me.coucou.nutrition.db.dao.MealsDataSource;
 import me.coucou.nutrition.db.model.Meal;
+import me.coucou.nutrition.db.model.Tag;
 import me.coucou.nutrition.factory.AlbumStorageDirFactory;
 import me.coucou.nutrition.factory.BaseAlbumDirFactory;
 import me.coucou.nutrition.factory.FroyoAlbumDirFactory;
@@ -106,6 +109,20 @@ public class CreateMealActivity extends ActionBarActivity {
         public PlaceholderFragment() {
         }
 
+        @Override
+        public void onCreate(Bundle savedInstanceState){
+            super.onCreate(savedInstanceState);
+
+            try {
+                dataSource = new MealsDataSource(getActivity());
+                dataSource.open();
+            } catch (SQLException e) {
+                //TODO: Handle exceptions
+                e.printStackTrace();
+            }
+
+        }
+
         public void showTimeDatePickerDialog(View v) {
             DialogFragment newFragment = new DatePickerFragment();
             newFragment.show(getFragmentManager(), "datePicker");
@@ -118,9 +135,9 @@ public class CreateMealActivity extends ActionBarActivity {
 
         public void saveMeal(View v) {
 
-            try {
-                dataSource = new MealsDataSource(getActivity());
-                dataSource.open();
+            //try {
+            //    dataSource = new MealsDataSource(getActivity());
+            //    dataSource.open();
                 EditText description = (EditText) getActivity().findViewById(R.id.mealDescriptionEditText);
                 Button dateBtn = (Button) getActivity().findViewById(R.id.pickTimeDateBtn);
                 Button timeBtn = (Button) getActivity().findViewById(R.id.pickTimeHourBtn);
@@ -170,17 +187,17 @@ public class CreateMealActivity extends ActionBarActivity {
                 startActivity(new Intent(getActivity(), MainActivity.class));
                 getActivity().finish();
 
-            } catch (SQLException e) {
+            //} catch (SQLException e) {
                 //TODO: Handle exceptions
-                e.printStackTrace();
-            }
+            //    e.printStackTrace();
+            //}
         }
 
         public void editMeal(View v, long id) {
 
-            try {
-                dataSource = new MealsDataSource(getActivity());
-                dataSource.open();
+            //try {
+                //dataSource = new MealsDataSource(getActivity());
+                //dataSource.open();
                 EditText description = (EditText) getActivity().findViewById(R.id.mealDescriptionEditText);
                 Button dateBtn = (Button) getActivity().findViewById(R.id.pickTimeDateBtn);
                 Button timeBtn = (Button) getActivity().findViewById(R.id.pickTimeHourBtn);
@@ -197,10 +214,10 @@ public class CreateMealActivity extends ActionBarActivity {
 
                 getActivity().finish();
 
-            } catch (SQLException e) {
+            //} catch (SQLException e) {
                 //TODO: Handle exceptions
-                e.printStackTrace();
-            }
+            //    e.printStackTrace();
+            //}
         }
 
         @Override
@@ -252,7 +269,7 @@ public class CreateMealActivity extends ActionBarActivity {
                 EditText txtEdit = (EditText) rootView.findViewById(R.id.mealDescriptionEditText);
                 txtEdit.setText(model.getDescription());
 
-                //TODO: REmove and move to a background thread
+                //TODO: Remove and move to a background thread
                 File imgFile = new  File(model.getImagePath());
                 if(imgFile.exists()){
 
@@ -288,9 +305,50 @@ public class CreateMealActivity extends ActionBarActivity {
                     }
                 });
 
+                //TODO:Entering text validation move to an entity
+                EditText description = (EditText) rootView.findViewById(R.id.mealDescriptionEditText);
+                description.addTextChangedListener(mTextEditorWatcher);
+
             }
             return rootView;
         }
+
+        private final TextWatcher mTextEditorWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                Log.d("CreateMealActivity",
+                        "beforeTextChanged:"+ s + " start:"+start + " count" + count +" after:"+after);
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                Log.d("CreateMealActivity",
+                        "onTextChanged:"+ s + " start:"+start +" before:"+before + " count" + count );
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                Log.d("CreateMealActivity",
+                        "afterTextChanged:"+ s );
+
+                String wordsSpaceSplit[] = s.toString().split(" ");
+                //TODO: Make it performance
+                for (int i=0; i < wordsSpaceSplit.length; i++ ){
+                    Log.d("CreateMealActivity",
+                            "wordsSpaceSplit:"+ wordsSpaceSplit[i] );
+
+                    Tag tag = dataSource.getTagByLabel(wordsSpaceSplit[i]);
+                    if( tag != null && dataSource.tagToList(tag)){
+                        Log.i("FOUND TEXT FOR TAG", tag.toString());
+                        dataSource.printListedTags();
+                        Log.i("FOUND TEXT FOR TAG", "--------------------------------------");
+                    }
+                }
+
+
+            }
+
+        };
 
         //takes a picture of the meal
         private void captureImage(){
