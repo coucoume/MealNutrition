@@ -28,6 +28,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -50,8 +51,6 @@ import me.coucou.nutrition.factory.FroyoAlbumDirFactory;
 
 public class CreateMealActivity extends ActionBarActivity {
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,9 +61,7 @@ public class CreateMealActivity extends ActionBarActivity {
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
         }
-
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -342,6 +339,13 @@ public class CreateMealActivity extends ActionBarActivity {
                         Log.i("FOUND TEXT FOR TAG", tag.toString());
                         dataSource.printListedTags();
                         Log.i("FOUND TEXT FOR TAG", "--------------------------------------");
+                        Button btnTag = new Button(getActivity());
+                        btnTag.setText(tag.getLabel());
+                        LinearLayout ll = (LinearLayout) getActivity().findViewById(R.id.tagContainer);
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT);
+                        ll.addView(btnTag, lp);
                     }
                 }
 

@@ -56,6 +56,11 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/mealDescriptionEditText"
                 android:lines="2" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:id="@+id/tagContainer"/>
 
             <ImageView
                 android:layout_width="wrap_content"
