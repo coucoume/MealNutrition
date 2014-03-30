@@ -14,6 +14,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -42,9 +43,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import me.coucou.nutrition.db.dao.MealsDataSource;
-import me.coucou.nutrition.db.model.Meal;
-import me.coucou.nutrition.db.model.Tag;
+import me.coucou.nutrition.db.DBManager;
+import me.coucou.nutrition.db.dao.MealDao;
+import me.coucou.nutrition.db.dao.TagDao;
+import me.coucou.nutrition.model.Meal;
+import me.coucou.nutrition.model.Tag;
 import me.coucou.nutrition.factory.AlbumStorageDirFactory;
 import me.coucou.nutrition.factory.BaseAlbumDirFactory;
 import me.coucou.nutrition.factory.FroyoAlbumDirFactory;
@@ -56,9 +59,14 @@ public class CreateMealActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_meal);
 
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
+        FragmentManager fm = getSupportFragmentManager();
+        PlaceholderFragment fragment = (PlaceholderFragment) fm.findFragmentByTag("CreateMealFragment");
+
+        if ( fragment == null) {
+            fragment = new PlaceholderFragment();
+
+            fm.beginTransaction()
+                    .add(R.id.container, fragment, "CreateMealFragment")
                     .commit();
         }
     }
@@ -88,7 +96,8 @@ public class CreateMealActivity extends ActionBarActivity {
      */
     public static class PlaceholderFragment extends Fragment {
 
-        private MealsDataSource dataSource;
+        private MealDao mealDao;
+        private TagDao tagDao;
         private String mCurrentPhotoPath;
 
         private Bitmap bmp;
@@ -111,8 +120,9 @@ public class CreateMealActivity extends ActionBarActivity {
             super.onCreate(savedInstanceState);
 
             try {
-                dataSource = new MealsDataSource(getActivity());
-                dataSource.open();
+                mealDao = DBManager.getInstance().getMealDao();
+                tagDao  = DBManager.getInstance().getTagDao();
+                DBManager.getInstance().open();
             } catch (SQLException e) {
                 //TODO: Handle exceptions
                 e.printStackTrace();
@@ -159,7 +169,7 @@ public class CreateMealActivity extends ActionBarActivity {
                     bos.close();
 
 
-                    Meal model = dataSource.createMeal(
+                    Meal model = mealDao.createMeal(
                             description.getText().toString(),
                             dateBtn.getText().toString(),
                             timeBtn.getText().toString(),
@@ -198,7 +208,7 @@ public class CreateMealActivity extends ActionBarActivity {
                 EditText description = (EditText) getActivity().findViewById(R.id.mealDescriptionEditText);
                 Button dateBtn = (Button) getActivity().findViewById(R.id.pickTimeDateBtn);
                 Button timeBtn = (Button) getActivity().findViewById(R.id.pickTimeHourBtn);
-                Meal model = dataSource.editMeal(
+                Meal model = mealDao.editMeal(
                         description.getText().toString(),
                         dateBtn.getText().toString(),
                         timeBtn.getText().toString(),
@@ -244,6 +254,7 @@ public class CreateMealActivity extends ActionBarActivity {
                     showTimeHourPickerDialog(v);
                 }
             });
+
 
 
             final Button saveEdit = (Button) rootView.findViewById(R.id.saveMeal);
@@ -334,10 +345,11 @@ public class CreateMealActivity extends ActionBarActivity {
                     Log.d("CreateMealActivity",
                             "wordsSpaceSplit:"+ wordsSpaceSplit[i] );
 
-                    Tag tag = dataSource.getTagByLabel(wordsSpaceSplit[i]);
-                    if( tag != null && dataSource.tagToList(tag)){
+                    Tag tag = tagDao.getTagByLabel(wordsSpaceSplit[i]);
+
+                    if( tag != null && tagDao.tagToList(tag)){
                         Log.i("FOUND TEXT FOR TAG", tag.toString());
-                        dataSource.printListedTags();
+                        tagDao.printListedTags();
                         Log.i("FOUND TEXT FOR TAG", "--------------------------------------");
                         Button btnTag = new Button(getActivity());
                         btnTag.setText(tag.getLabel());
@@ -348,10 +360,7 @@ public class CreateMealActivity extends ActionBarActivity {
                         ll.addView(btnTag, lp);
                     }
                 }
-
-
             }
-
         };
 
         //takes a picture of the meal
@@ -448,9 +457,7 @@ public class CreateMealActivity extends ActionBarActivity {
         @Override
         public void onResume(){
             try {
-                if(dataSource != null){
-                    dataSource.open();
-                }
+                DBManager.getInstance().open();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -459,9 +466,7 @@ public class CreateMealActivity extends ActionBarActivity {
 
         @Override
         public void onPause() {
-            if(dataSource != null){
-                dataSource.close();
-            }
+            DBManager.getInstance().close();
             super.onPause();
         }
     }

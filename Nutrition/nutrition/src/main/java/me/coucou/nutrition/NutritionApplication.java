@@ -2,7 +2,9 @@ package me.coucou.nutrition;
 
 import android.app.Application;
 
-import me.coucou.nutrition.db.model.Meal;
+import me.coucou.nutrition.db.DBManager;
+import me.coucou.nutrition.db.NutritionMealSQLiteHelper;
+import me.coucou.nutrition.model.Meal;
 
 /**
  * Created by matias on 2/12/14.
@@ -13,8 +15,15 @@ public class NutritionApplication extends Application {
 
     @Override
     public void onCreate() {
-
         super.onCreate();
+        initializeDBManager();
     }
+
+    private void initializeDBManager(){
+        DBManager.getInstance().init(
+                new NutritionMealSQLiteHelper(getApplicationContext())
+        );
+    }
+
 
 }

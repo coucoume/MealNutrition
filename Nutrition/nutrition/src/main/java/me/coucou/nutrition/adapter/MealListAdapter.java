@@ -14,7 +14,7 @@ import java.io.File;
 import java.util.List;
 
 import me.coucou.nutrition.R;
-import me.coucou.nutrition.db.model.Meal;
+import me.coucou.nutrition.model.Meal;
 
 /**
  * Created by matias on 2/18/14.

@@ -18,8 +18,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 import me.coucou.nutrition.adapter.MealListAdapter;
-import me.coucou.nutrition.db.dao.MealsDataSource;
-import me.coucou.nutrition.db.model.Meal;
+import me.coucou.nutrition.db.DBManager;
+import me.coucou.nutrition.db.dao.MealDao;
+import me.coucou.nutrition.model.Meal;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -60,22 +61,20 @@ public class MainActivity extends ActionBarActivity {
      * A placeholder fragment containing a simple view.
      */
     public static class PlaceholderFragment extends Fragment {
+        private MealDao mealDao;
 
-        private MealsDataSource dataSource;
-
-        public PlaceholderFragment() {
-        }
+        public PlaceholderFragment() {}
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
-           super.onCreate(savedInstanceState);
-           dataSource = new MealsDataSource(getActivity());
+            super.onCreate(savedInstanceState);
+
             try {
-                dataSource.open();
+                mealDao = DBManager.getInstance().getMealDao();
+                DBManager.getInstance().open();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-
         }
 
 
@@ -95,7 +94,7 @@ public class MainActivity extends ActionBarActivity {
                 }
             });
 
-            List<Meal> values = dataSource.getAllComments();
+            List<Meal> values = mealDao.getAllMeals();
 
             //SHOW the textfield that display create your first meal
             if(values.isEmpty()){
@@ -125,7 +124,7 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onResume(){
             try {
-                dataSource.open();
+                DBManager.getInstance().open();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -134,7 +133,7 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onPause() {
-            dataSource.close();
+            DBManager.getInstance().close();
             super.onPause();
         }
     }
