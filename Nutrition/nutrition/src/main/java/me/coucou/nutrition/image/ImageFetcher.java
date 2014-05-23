@@ -8,15 +8,12 @@ import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import me.coucou.nutrition.BuildConfig;
 import me.coucou.nutrition.R;
@@ -249,31 +246,55 @@ public class ImageFetcher extends ImageResizer {
      */
     public boolean downloadUrlToStream(String urlString, OutputStream outputStream) {
         disableConnectionReuseIfNecessary();
-        HttpURLConnection urlConnection = null;
-        BufferedOutputStream out = null;
-        BufferedInputStream in = null;
-
+        //HttpURLConnection urlConnection = null;
+        //BufferedOutputStream out = null;
+        //BufferedInputStream in = null;
+        InputStream in = null;
         try {
-            final URL url = new URL(urlString);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            in = new BufferedInputStream(urlConnection.getInputStream(), IO_BUFFER_SIZE);
-            out = new BufferedOutputStream(outputStream, IO_BUFFER_SIZE);
+            File imgFile = new  File(urlString);
+            if(imgFile.exists()){
+                in = new FileInputStream(imgFile);
+                byte[] buf = new byte[IO_BUFFER_SIZE];
 
-            int b;
-            while ((b = in.read()) != -1) {
-                out.write(b);
+                int c = 0;
+
+                while ((c = in.read(buf, 0, buf.length)) > 0) {
+                    outputStream.write(buf, 0, c);
+                    outputStream.flush();
+                }
+
+                //final URL url = new URL(urlString);
+                //urlConnection = (HttpURLConnection) url.openConnection();
+                //File imgFile = new  File(urlString);
+                //if(imgFile.exists()){
+                //in = new BufferedInputStream(urlConnection.getInputStream(), IO_BUFFER_SIZE);
+
+                //out = new BufferedOutputStream(outputStream, IO_BUFFER_SIZE);
+
+                //out = new BufferedOutputStream(new FileOutputStream(urlString));
+
+                //int b;
+                //while ((b = in.read()) != -1) {
+                //    out.write(b);
+                //}
+                return true;
+                //}
+                //return false;
+
             }
-            return true;
+            Log.e(TAG, "Error file no existee");
+
         } catch (final IOException e) {
             Log.e(TAG, "Error in downloadBitmap - " + e);
         } finally {
-            if (urlConnection != null) {
-                urlConnection.disconnect();
-            }
+            //if (urlConnection != null) {
+            //    urlConnection.disconnect();
+            //}
             try {
-                if (out != null) {
+                /*if (out != null) {
+                    out.flush();
                     out.close();
-                }
+                }*/
                 if (in != null) {
                     in.close();
                 }

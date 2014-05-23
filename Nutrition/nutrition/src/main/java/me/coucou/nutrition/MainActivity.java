@@ -1,26 +1,11 @@
 package me.coucou.nutrition;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ImageButton;
-import android.widget.ListView;
-import android.widget.TextView;
 
-import java.sql.SQLException;
-import java.util.List;
-
-import me.coucou.nutrition.adapter.MealListAdapter;
-import me.coucou.nutrition.db.DBManager;
-import me.coucou.nutrition.db.dao.MealDao;
-import me.coucou.nutrition.model.Meal;
+import me.coucou.nutrition.ui.ImageListFragment;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -31,7 +16,7 @@ public class MainActivity extends ActionBarActivity {
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
+                    .add(R.id.container, new ImageListFragment())
                     .commit();
         }
     }
@@ -60,7 +45,7 @@ public class MainActivity extends ActionBarActivity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
+   /* public static class PlaceholderFragment extends Fragment {
         private MealDao mealDao;
 
         public PlaceholderFragment() {}
@@ -89,6 +74,8 @@ public class MainActivity extends ActionBarActivity {
             addBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    NutritionApplication app = (NutritionApplication) getActivity().getApplication();
+                    app.currentMeal = null;
                     Intent createMealIntent = new Intent(getActivity(), CreateMealActivity.class);
                     startActivity(createMealIntent);
                 }
@@ -136,6 +123,6 @@ public class MainActivity extends ActionBarActivity {
             DBManager.getInstance().close();
             super.onPause();
         }
-    }
+    }*/
 
 }
