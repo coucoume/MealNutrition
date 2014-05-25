@@ -17,4 +17,6 @@
 
     <string name="no_network_connection_toast">No network connection found</string>
 
+    <color name="meLightFgG">#d3d3d3</color>
+
 </resources>

@@ -155,39 +155,10 @@ public class ImageListFragment  extends Fragment implements AdapterView.OnItemCl
         NutritionApplication app = (NutritionApplication) getActivity().getApplication();
         app.currentMeal = model;
         startActivity(createMealIntent);
-
-
-
-/*        final Intent i = new Intent(getActivity(), ImageDetailActivity.class);
-        i.putExtra(ImageDetailActivity.EXTRA_IMAGE, (int) id);
-        if (Utils.hasJellyBean()) {
-            // makeThumbnailScaleUpAnimation() looks kind of ugly here as the loading spinner may
-            // show plus the thumbnail image in GridView is cropped. so using
-            // makeScaleUpAnimation() instead.
-            ActivityOptions options =
-                    ActivityOptions.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
-            getActivity().startActivity(i, options.toBundle());
-        } else {
-            startActivity(i);
-        }*/
     }
-
-//    @Override
-//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-//        inflater.inflate(R.menu.main_menu, menu);
-//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-/*
-        switch (item.getItemId()) {
-            case R.id.clear_cache:
-                mImageFetcher.clearCache();
-                Toast.makeText(getActivity(), R.string.clear_cache_complete_toast,
-                        Toast.LENGTH_SHORT).show();
-                return true;
-        }
-*/
         return super.onOptionsItemSelected(item);
     }
 
