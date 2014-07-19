@@ -37,11 +37,12 @@ public class MealDao extends BaseDao {
         return newModel;
     }
 
-    public Meal editMeal(String comment, String date, String time,  long id) {
+    public Meal editMeal(String comment, String date, String time,  long id, String path) {
         ContentValues values = new ContentValues();
         values.put(MealDBSchema.COLUMN_MEAL, comment);
         values.put(MealDBSchema.COLUMN_DATE, date);
         values.put(MealDBSchema.COLUMN_TIME, time);
+        values.put(MealDBSchema.COLUMN_IMAGE_PATH, path);
 
         getDataBase().update(MealDBSchema.TABLE_MEALS, values, MealDBSchema.COLUMN_ID + " = " + id, null);
 

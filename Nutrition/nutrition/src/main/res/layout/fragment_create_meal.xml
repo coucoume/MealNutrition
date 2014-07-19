@@ -32,7 +32,7 @@
             android:orientation="vertical"
             android:baselineAligned="false">
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
                 <Button
@@ -51,26 +51,44 @@
                     android:layout_weight="1"/>
 
             </LinearLayout>
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/mealDescriptionEditText"
-                android:lines="2" />
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:id="@+id/tagContainer"/>
-
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/mealImage"
                 android:contentDescription="@string/meal_image_alt"
-                android:src="@drawable/meal_placeholder"
+                android:background="@drawable/meal_placeholder"
                 android:clickable="true"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="1"/>
+                android:layout_weight="1"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imageButtonRotate"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:src="@android:drawable/ic_menu_rotate" />
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/mealDescriptionEditText"
+                    android:lines="2"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true" />
+            </RelativeLayout>
 
             <Button
                 android:layout_width="match_parent"

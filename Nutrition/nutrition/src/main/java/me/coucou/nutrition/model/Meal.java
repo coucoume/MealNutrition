@@ -59,4 +59,5 @@ public class Meal {
     public String toString() {
         return date+" - "+ time +"\n" +description +"\n"+imagePath;
     }
+
 }
