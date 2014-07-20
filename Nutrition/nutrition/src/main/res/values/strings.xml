@@ -14,6 +14,7 @@
     <string name="title_activity_create_meal">CreateMealActivity</string>
     <string name="meal_image_alt">Meal image</string>
     <string name="no_meal_in_list">No meals yet!\nAdd your first one</string>
+    <string name="default_meal_description">Please add what you eat...</string>
 
     <string name="no_network_connection_toast">No network connection found</string>
 

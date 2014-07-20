@@ -74,11 +74,11 @@
                 <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/imageButtonRotate"
+                    android:id="@+id/imageButtonCamera"
                     android:layout_alignParentTop="true"
                     android:layout_alignParentRight="true"
                     android:layout_alignParentEnd="true"
-                    android:src="@android:drawable/ic_menu_rotate" />
+                    android:src="@android:drawable/ic_menu_camera" />
 
                 <EditText
                     android:layout_width="match_parent"

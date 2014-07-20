@@ -1,6 +1,7 @@
 package me.coucou.nutrition.db.dao;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -13,9 +14,13 @@ import me.coucou.nutrition.model.Meal;
  * Created by matias on 3/10/14.
  */
 public class MealDao extends BaseDao {
+    public static int DEFAULT_ID_VALUE = -1;
+    private Context mContext;
 
-    public MealDao(SQLiteOpenHelper dbHelper){
+
+    public MealDao(SQLiteOpenHelper dbHelper, Context context){
         super(dbHelper);
+        mContext = context;
     }
 
     public Meal createMeal(String comment, String date, String time, String fullPathImage) {
@@ -31,9 +36,13 @@ public class MealDao extends BaseDao {
         Cursor cursor = getDataBase().query(MealDBSchema.TABLE_MEALS,
                 MealDBSchema.allColumns, MealDBSchema.COLUMN_ID + " = " + insertId, null,
                 null, null, null);
-        cursor.moveToFirst();
-        Meal newModel = cursorToComment(cursor);
-        cursor.close();
+
+        Meal newModel = new Meal(mContext);
+        if(cursor !=null && cursor.moveToFirst()){
+            newModel = cursorToMealModel(cursor, newModel);
+            cursor.close();
+        }
+
         return newModel;
     }
 
@@ -48,7 +57,7 @@ public class MealDao extends BaseDao {
 
         Cursor cursor = getDataBase().rawQuery("SELECT * FROM " + MealDBSchema.TABLE_MEALS + " WHERE " + MealDBSchema.COLUMN_ID + " = " + id, null);
         cursor.moveToFirst();
-        Meal editedModel = cursorToComment(cursor);
+        Meal editedModel = cursorToMealModel(cursor, new Meal(mContext));
         cursor.close();
 
         return editedModel;
@@ -67,26 +76,45 @@ public class MealDao extends BaseDao {
         Cursor cursor = getDataBase().query(MealDBSchema.TABLE_MEALS,
                 MealDBSchema.allColumns, null, null, null, null, null);
 
-        //cursor.moveToFirst();
-        cursor.moveToLast();
+        if(cursor != null && cursor.moveToLast()){
 
-        while (!cursor.isBeforeFirst()) {
-            Meal m = cursorToComment(cursor);
-            list.add(m);
-            cursor.moveToPrevious();
+            Meal model;
+            while (!cursor.isBeforeFirst()) {
+                model = cursorToMealModel(cursor, new Meal(mContext));
+                list.add(model);
+                cursor.moveToPrevious();
+            }
+
+            // make sure to close the cursor
+            cursor.close();
         }
-
-        // make sure to close the cursor
-        cursor.close();
 
         return list;
     }
 
+    /**
+     *  Get a Meal from the Meal DB List
+     *
+     * @param id
+     * @return
+     */
+    public Meal getMealById(Long id){
+        Cursor cursor = getDataBase().query(MealDBSchema.TABLE_MEALS,
+                MealDBSchema.allColumns, MealDBSchema.COLUMN_ID + " = " + id, null,
+                null, null, null);
+
+        Meal model = new Meal(mContext);
+        if(cursor != null && cursor.moveToFirst()){
+            model = cursorToMealModel(cursor, model);
+            cursor.close();
+        }
+
+        return model;
+    }
 
 
-    private Meal cursorToComment(Cursor cursor) {
-        Meal model = new Meal();
 
+    private Meal cursorToMealModel(Cursor cursor, Meal model) {
         model.setId(cursor.getLong(0));
         model.setDescription(cursor.getString(1));
         model.setDate(cursor.getString(2));

@@ -1,10 +1,14 @@
 package me.coucou.nutrition.ui;
 
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -13,11 +17,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import me.coucou.nutrition.MainActivity;
 import me.coucou.nutrition.NutritionApplication;
@@ -25,6 +33,9 @@ import me.coucou.nutrition.R;
 import me.coucou.nutrition.db.DBManager;
 import me.coucou.nutrition.db.dao.MealDao;
 import me.coucou.nutrition.db.dao.TagDao;
+import me.coucou.nutrition.factory.AlbumStorageDirFactory;
+import me.coucou.nutrition.factory.BaseAlbumDirFactory;
+import me.coucou.nutrition.factory.FroyoAlbumDirFactory;
 import me.coucou.nutrition.model.Meal;
 import me.coucou.nutrition.util.MealCalendar;
 
@@ -35,16 +46,35 @@ public class CreateMealFragment extends Fragment{
 
     private static String TAG = "CreateMealFragment";
 
+    //Application reference
+    private NutritionApplication mNutritionApplication;
+
+    //UI Controls
+    private View mCurrentView;
     private ImageView mImageView;
+    private EditText mDescription;
+    private Button mPickTimeDateBtn;
+    private Button mPickTimeHourBtn;
+    private Button mSaveMeal;
+
+    //DB
+    private Meal mModel;
     private MealDao mealDao;
     private TagDao tagDao;
-    private String mImagePath;
 
-    private Bitmap mPhoto;
+    private static final int ACTION_CAMERA = 1;
 
-    /**
-     * Constructor
-     */
+    private AlbumStorageDirFactory mAlbumStorageDirFactory = null;
+
+    public static CreateMealFragment newInstance(Long modelId){
+        CreateMealFragment f = new CreateMealFragment();
+        Bundle args = new Bundle();
+        args.putLong("model_id", modelId);
+        f.setArguments(args);
+
+        return f;
+    }
+
     public CreateMealFragment(){}
 
     @Override
@@ -52,9 +82,23 @@ public class CreateMealFragment extends Fragment{
         super.onCreate(savedInstanceState);
 
         try {
-            mealDao = DBManager.getInstance().getMealDao();
+
+            mNutritionApplication = (NutritionApplication) getActivity().getApplication();
+
+            mealDao = mNutritionApplication.getMealDao();
+            //TODO refactor getTagDao as mealDao
             tagDao  = DBManager.getInstance().getTagDao();
             DBManager.getInstance().open();
+
+            //check if there's a saved state in order to retrieve saved data and populate UI controls
+            if (savedInstanceState != null){
+                mModel = mNutritionApplication.currentMeal;
+            }else{
+                mModel = mealDao.getMealById(getArguments().getLong("model_id", Meal.DEFAULT_ID));
+                mNutritionApplication.currentMeal = mModel;
+            }
+
+
         } catch (SQLException e) {
             Log.e(TAG, e.toString());
         }
@@ -64,98 +108,58 @@ public class CreateMealFragment extends Fragment{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_create_meal, container, false);
-        //checks if is editing or adding a new Meal
-        Meal model = ((NutritionApplication) getActivity().getApplication()).currentMeal;
 
-        createUIPickers(rootView, model);
-        createUINewItemEditItem(rootView, model);
+        //Default UI controls and saved states
+        mCurrentView        = inflater.inflate(R.layout.fragment_create_meal, container, false);
+        mImageView          = (ImageView) mCurrentView.findViewById(R.id.mealImage);
+        mDescription        = (EditText) mCurrentView.findViewById(R.id.mealDescriptionEditText);
+        mPickTimeDateBtn    = (Button) mCurrentView.findViewById(R.id.pickTimeDateBtn);
+        mPickTimeHourBtn    = (Button) mCurrentView.findViewById(R.id.pickTimeHourBtn);
+        mSaveMeal           = (Button) mCurrentView.findViewById(R.id.saveMeal);
 
-        return rootView;
-    }
+        createUIPickers();
+        createUIEditItemStrategy();
 
-    /**
-     * Create and setup UI elements to display image and description
-     * @param rootView
-     * @param model
-     */
-    private void createUINewItemEditItem(View rootView, Meal model){
-        if(model != null){
-            //current model set from the main list, means that is editing
-            createUIEditItemStrategy(model, rootView);
-        } else {
-            //model is null, means that is creating a new Meal
-            createUINewItemStrategy(rootView);
-        }
+        return mCurrentView;
     }
 
     /**
      * Binds components in order to edit a model
-     *
-     * @param model
      */
-    private void createUIEditItemStrategy(final Meal model, View rootView){
+    private void createUIEditItemStrategy(){
+
         //edit meal button
-        ((Button) rootView.findViewById(R.id.saveMeal)).setOnClickListener(new View.OnClickListener() {
+        ((Button) mCurrentView.findViewById(R.id.saveMeal)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                editMeal(v, model);
+                saveMeal();
             }
         });
 
-        EditText txtEdit = (EditText) rootView.findViewById(R.id.mealDescriptionEditText);
-        txtEdit.setText(model.getDescription());
-
-        //Retrieves image from model and loads from its path
-        String picUrl = model.getImagePath();
-        if(picUrl != null){
-            File imgFile = new  File(picUrl);
-            if(imgFile.exists()){
-                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                ImageView myImage = (ImageView) rootView.findViewById(R.id.mealImage);
-                myImage.setImageBitmap(myBitmap);
-            } else {
-                Log.d(TAG, "Image file is missing in the scard, so not showing");
-            }
-        } else {
-            Log.d(TAG, "Image file is empty in the registry, so not showing");
-        }
-    }
-    /**
-     * Binds component in order to create a new model
-     *
-     * @param rootView
-     */
-    private void createUINewItemStrategy(View rootView){
-        //edit meal button
-        ((Button) rootView.findViewById(R.id.saveMeal)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                saveMeal(v);
-            }
-        });
+        mDescription.setText(mModel.getDescription());
+        mImageView.setImageBitmap(mModel.getBitmap());
+        mPickTimeDateBtn.setText(mModel.getDate());
+        mPickTimeHourBtn.setText(mModel.getTime());
 
         //New mode-> let you add an image
-        ((ImageView) rootView.findViewById(R.id.mealImage)).setOnClickListener(new View.OnClickListener() {
+        ((ImageButton) mCurrentView.findViewById(R.id.imageButtonCamera)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((TakePhotoInterface) getActivity()).takePhoto();
+                //TODO: Add an Interface
+                captureImage();
             }
         });
 
         // Add text watcher in order to check user input and read all tags related
-        EditText description = (EditText) rootView.findViewById(R.id.mealDescriptionEditText);
-        description.addTextChangedListener(new TextMealWatcher(getActivity()));
-
+        mDescription.addTextChangedListener(new TextMealWatcher(getActivity()));
     }
+
     /**
      * Binds all components with their actions
-     *
-     * @param rootView
      */
-    private void createUIPickers(View rootView, Meal model){
+    private void createUIPickers(){
         //Date control
-        final Button btnDate = (Button) rootView.findViewById(R.id.pickTimeDateBtn);
+        final Button btnDate = mPickTimeDateBtn;
         btnDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -164,7 +168,7 @@ public class CreateMealFragment extends Fragment{
         });
 
         //Time control
-        final Button btnTime = (Button) rootView.findViewById(R.id.pickTimeHourBtn);
+        final Button btnTime = mPickTimeHourBtn;
         btnTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -172,24 +176,62 @@ public class CreateMealFragment extends Fragment{
             }
         });
 
-        if(model != null){
-            btnDate.setText(model.getDate());
-            btnTime.setText(model.getTime());
-        } else {
-            btnTime.setText(MealCalendar.getCalendarTime());
-            btnDate.setText(MealCalendar.getCalendarDate());
-        }
-
+        btnDate.setText(mModel.getDate());
+        btnTime.setText(mModel.getTime());
     }
 
-    private void saveMeal(View v){
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        //Update current UI information to model
+        mModel.setDescription(mDescription.getText().toString());
+        mModel.setDate(mPickTimeDateBtn.getText().toString());
+        mModel.setTime(mPickTimeHourBtn.getText().toString());
 
-        EditText description = (EditText) getActivity().findViewById(R.id.mealDescriptionEditText);
-        Button dateBtn = (Button) getActivity().findViewById(R.id.pickTimeDateBtn);
-        Button timeBtn = (Button) getActivity().findViewById(R.id.pickTimeHourBtn);
+        super.onSaveInstanceState(outState);
+    }
 
+    private void saveMeal(){
 
-        /*String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        mModel.setDescription(mDescription.getText().toString());
+        mModel.setDate(mPickTimeDateBtn.getText().toString());
+        mModel.setTime(mPickTimeHourBtn.getText().toString());
+
+        if(mModel.getId() == Meal.DEFAULT_ID){
+            Meal savedModel = mealDao.createMeal(mModel.getDescription(), mModel.getDate(),mModel.getTime(),mModel.getImagePath());
+        }else{
+            Meal editedModel = mealDao.editMeal(mModel.getDescription(), mModel.getDate(),mModel.getTime(),mModel.getId(), mModel.getImagePath());
+        }
+        /*
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "mealThumb"+ timeStamp + ".jpg";
+        File albumF = getAlbumDir();
+
+        try{
+            String fullFileName = albumF.getAbsolutePath()+ File.separatorChar + imageFileName;
+            Log.d(this.toString(), "full file name:"+fullFileName);
+
+            FileOutputStream thumbFileOS = new FileOutputStream(fullFileName);
+            BufferedOutputStream bos = new BufferedOutputStream(thumbFileOS);
+            mPhoto.compress(Bitmap.CompressFormat.JPEG, 80, bos);
+
+            bos.flush();
+            bos.close();
+
+            Meal savedModel = mealDao.createMeal(mModel.getDescription(), mModel.getDate(),mModel.getTime(),mModel.getImagePath());
+
+            Toast.makeText(getActivity(), model.toString(), Toast.LENGTH_SHORT).show();
+
+        } catch (FileNotFoundException e) {
+            Log.w(this.toString(), "Error saving image file: " + e.getMessage());
+
+        } catch (IOException e) {
+            Log.w(this.toString(), "Error saving image file: " + e.getMessage());
+
+        }
+
+        */
+
+         /*String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "mealThumb"+ timeStamp + ".jpg";
         File albumF = getAlbumDir();
         try{
@@ -219,49 +261,101 @@ public class CreateMealFragment extends Fragment{
 
         }
         */
-
-        Meal model = mealDao.createMeal(
+        /*Meal model = mealDao.createMeal(
                 description.getText().toString(),
                 dateBtn.getText().toString(),
                 timeBtn.getText().toString(),
-                mImagePath);
-        Toast.makeText(getActivity(), model.toString(), Toast.LENGTH_SHORT).show();
+                app.currentPathToFile);
+        */
+        Toast.makeText(getActivity(), mModel.toString(), Toast.LENGTH_SHORT).show();
 
-        mPhoto = null;
-
+        //destroy current references
+        mNutritionApplication.currentMeal = null;
         startActivity(new Intent(getActivity(), MainActivity.class));
         getActivity().finish();
 
     }
 
-    private void editMeal(View v, Meal model) {
-        long id = model.getId();
+    public void captureImage(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
+            mAlbumStorageDirFactory = new FroyoAlbumDirFactory();
+        } else {
+            mAlbumStorageDirFactory = new BaseAlbumDirFactory();
+        }
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        File f = null;
+        try {
+            f = createImageFile();
+            mModel.setImagePath(f.getAbsolutePath());
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+        } catch (IOException e) {
+            e.printStackTrace();
+            mModel.setImagePath(null);
+        }
 
-        EditText description = (EditText) getActivity().findViewById(R.id.mealDescriptionEditText);
-        Button dateBtn = (Button) getActivity().findViewById(R.id.pickTimeDateBtn);
-        Button timeBtn = (Button) getActivity().findViewById(R.id.pickTimeHourBtn);
-
-        Meal editedModel = mealDao.editMeal(
-                description.getText().toString(),
-                dateBtn.getText().toString(),
-                timeBtn.getText().toString(),
-                id,
-                mImagePath);
-
-        Toast.makeText(getActivity(), editedModel.toString(), Toast.LENGTH_SHORT).show();
-        startActivity(new Intent(getActivity(), MainActivity.class));
-
-        //Remove the meal
-        ((NutritionApplication)getActivity().getApplication()).currentMeal = null;
-
-        getActivity().finish();
+        startActivityForResult(takePictureIntent, ACTION_CAMERA);
     }
 
-    public void setPhoto(Bitmap bmp, String path){
-        mPhoto = bmp;
-        mImagePath = path;
-        mImageView = (ImageView) getActivity().findViewById(R.id.mealImage);
-        mImageView.setImageBitmap(mPhoto);
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (resultCode == Activity.RESULT_OK) {
+
+            Log.d(TAG, "OK picture taken");
+
+            Bitmap bmp = mModel.buildBitmap();
+            if(bmp != null){
+                mImageView.setImageBitmap(mModel.buildBitmap());
+            } else{
+                Log.e(TAG, "Null bmp received from TakePhotoFragment");
+            }
+
+        } else {
+           deleteImageFile();
+        }
+    }
+
+    private void deleteImageFile(){
+        //TODO: Implement code for cancelled operation
+        File file = new File(mModel.getImagePath());
+        boolean deleted = file.delete();
+        Toast.makeText(getActivity(), "Operation cancelled:" + deleted, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Create a Bitmap file
+     *
+     * @return File
+     * @throws java.io.IOException
+     */
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = Meal.JPEG_FILE_PREFIX + timeStamp + "_";
+        File albumF = getAlbumDir();
+        File imageF = File.createTempFile(imageFileName, Meal.JPEG_FILE_SUFFIX, albumF);
+
+        return imageF;
+    }
+
+    private File getAlbumDir() {
+        File storageDir = null;
+
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            storageDir = mAlbumStorageDirFactory.getAlbumStorageDir(getString(R.string.album_name));
+            if (storageDir != null) {
+                if (!storageDir.mkdirs()) {
+                    if (!storageDir.exists()) {
+                        Log.d("CameraSample", "failed to create directory");
+                        return null;
+                    }
+                }
+            }
+
+        } else {
+            Log.v(getString(R.string.app_name), "External storage is not mounted READ/WRITE.");
+        }
+
+        return storageDir;
     }
 
 
@@ -290,5 +384,6 @@ public class CreateMealFragment extends Fragment{
         DBManager.getInstance().close();
         super.onPause();
     }
+
 
 }

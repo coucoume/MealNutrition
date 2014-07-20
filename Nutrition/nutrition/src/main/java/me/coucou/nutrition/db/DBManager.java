@@ -1,5 +1,6 @@
 package me.coucou.nutrition.db;
 
+import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -44,10 +45,11 @@ public final class DBManager {
         mDBHelper.close();
     }
 
-    public MealDao getMealDao(){
+    public MealDao getMealDao(Context context){
         if(this.mealDao == null){
-            this.mealDao = new MealDao(mDBHelper);
+            this.mealDao = new MealDao(mDBHelper, context);
         }
+
         return this.mealDao;
     }
 

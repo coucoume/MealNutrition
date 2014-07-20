@@ -54,7 +54,7 @@ public class ImageListFragment  extends Fragment implements AdapterView.OnItemCl
         setHasOptionsMenu(true);
 
         try {
-            mealDao = DBManager.getInstance().getMealDao();
+            mealDao = ((NutritionApplication)getActivity().getApplication()).getMealDao();
             DBManager.getInstance().open();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -152,8 +152,7 @@ public class ImageListFragment  extends Fragment implements AdapterView.OnItemCl
         Meal model = (Meal) mAdapter.getItem(position);
 
         Intent createMealIntent = new Intent(getActivity(), CreateMealActivity.class);
-        NutritionApplication app = (NutritionApplication) getActivity().getApplication();
-        app.currentMeal = model;
+        createMealIntent.putExtra("model_id", model.getId());
         startActivity(createMealIntent);
     }
 

@@ -4,6 +4,7 @@ import android.app.Application;
 
 import me.coucou.nutrition.db.DBManager;
 import me.coucou.nutrition.db.NutritionMealSQLiteHelper;
+import me.coucou.nutrition.db.dao.MealDao;
 import me.coucou.nutrition.model.Meal;
 
 /**
@@ -12,6 +13,11 @@ import me.coucou.nutrition.model.Meal;
 public class NutritionApplication extends Application {
     //TODO: Remove this in order to support all meals and DB connection in the application scope
     public Meal currentMeal;
+    //public Bitmap currentMealBitmap;
+    //public String currentComment;
+    //public String currentPathToFile;
+
+    private DBManager dbManager;
 
     @Override
     public void onCreate() {
@@ -20,9 +26,14 @@ public class NutritionApplication extends Application {
     }
 
     private void initializeDBManager(){
-        DBManager.getInstance().init(
+        dbManager = DBManager.getInstance();
+        dbManager.init(
                 new NutritionMealSQLiteHelper(getApplicationContext())
         );
+    }
+
+    public MealDao getMealDao(){
+        return dbManager.getMealDao(this.getApplicationContext());
     }
 
 
