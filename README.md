@@ -8,7 +8,7 @@ This is a list of the features you can find in the code:
 - Activities
 - Fragments
 - Intents used to take a picture
-- MySQL-lite Data bases access
+- SQL-lite Data bases access
 - UI Components
   - ListView
   - Buttons
