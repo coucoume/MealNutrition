@@ -13,6 +13,9 @@ This is a list of the features you can find in the code:
   - ListView
   - Buttons
   - ImageView
+  - Labels
+  - Layouts
+  - Styles
 - Image Async. loading
 - Retrieving images from a Cache
 - Support for old Android versions
